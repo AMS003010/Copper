@@ -1,19 +1,19 @@
-# Offical Golang image as a build stage
+# Use an official Golang image as a build stage
 FROM golang:1.23-alpine AS builder
 
-# Set the current working directory inside the conatiner
+# Set the current working directory inside the container
 WORKDIR /app
 
-# Copy the GO modules files first to cache the dependencies
-COPY go.mod go.sum ./
+# Copy only the necessary Go module files first (for caching dependencies)
+COPY api-server/go.mod api-server/go.sum ./
 
-# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
+# Download dependencies
 RUN go mod download
 
-# Copy the rest of the source code into container
-COPY . .
+# Copy the entire source code into the container
+COPY api-server/ . 
 
-# Build the Go app binary.
+# Build the Go app binary
 RUN go build -o api-server ./main.go
 
 # Build the migration binary
@@ -22,10 +22,10 @@ RUN go build -o migrate ./migrate/migrate.go
 # Use a minimal image for running the application
 FROM alpine:3.18
 
-# Set the Current Working Directory inside the contianer
+# Set the current working directory inside the container
 WORKDIR /app
 
-# Copy the pre-built binary files from builder stage
+# Copy the pre-built binaries from the builder stage
 COPY --from=builder /app/api-server .
 COPY --from=builder /app/migrate .
 

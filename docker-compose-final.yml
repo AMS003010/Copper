@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: https://github.com/AMS003010/Copper.git  # Clone entire repo
+      dockerfile: api-server/Dockerfile  # Specify Dockerfile inside api-server
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DB_URL=postgres://copper:copper@db:5432/copper  # Use 'db' as hostname inside Docker network
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: copper
+      POSTGRES_PASSWORD: copper
+      POSTGRES_DB: copper
+    ports:
+      - "5432:5432"
+    volumes:
+      - copper_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  copper_data:
+
