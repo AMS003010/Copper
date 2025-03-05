@@ -1,11 +1,16 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/ams003010/Copper/api-server/initializers"
 	"github.com/ams003010/Copper/api-server/models"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
 func ImageCreate(c *gin.Context) {
@@ -42,7 +47,43 @@ func ImageCreate(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Image saved successfully", "image": image})
 }
 
-func GetAllImages(c *gin.Context) {
+func fetchImagesFromDB() []models.RegistryImage {
+	var images []models.RegistryImage
+	result := initializers.DB.Find(&images)
+
+	if result.Error != nil {
+		return nil
+	}
+
+	return images
+}
+
+func GetAllImages(c *gin.Context, redisClient *redis.Client) {
+	ctx := context.Background()
+	cachekey := "all_images"
+
+	cachedData, err := redisClient.Get(ctx, cachekey).Result()
+
+	if err == redis.Nil {
+		images := fetchImagesFromDB()
+		if images == nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching images"})
+			return
+		}
+
+		data, _ := json.Marshal(images)
+		redisClient.Set(ctx, cachekey, data, 10*time.Minute)
+
+		c.JSON(http.StatusOK, images)
+	} else if err != nil {
+		fmt.Println("Redis error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+	} else {
+		var images []models.RegistryImage
+		json.Unmarshal([]byte(cachedData), &images)
+		c.JSON(http.StatusOK, images)
+	}
+
 	var images []models.RegistryImage
 	result := initializers.DB.Find(&images)
 

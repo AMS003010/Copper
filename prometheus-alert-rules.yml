@@ -1,0 +1,20 @@
+groups:
+  - name: instance_alerts
+    rules:
+      - alert: HighMemoryUsage
+        expr: node_memory_Active_bytes / node_memory_MemTotal_bytes * 100 > 80
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Memory Usage Detected"
+          description: "Memory usage is above 80% for more than 1 minute."
+
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[2m]) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU Usage"
+          description: "CPU usage is above 85% for more than 2 minutes."
