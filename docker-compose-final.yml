@@ -11,9 +11,12 @@ services:
       - REDIS_URL=redis:6379
       - OTEL_EXPORTER_OTLP_ENDPOINT=jaeger:4318
     depends_on:
-      - db
-      - redis
-      - jaeger
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      jaeger:
+        condition: service_started
   
   nginx:
     image: nginx:latest
@@ -37,6 +40,11 @@ services:
     volumes:
       - copper_data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "copper"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:latest
