@@ -13,7 +13,7 @@ services:
       - prometheus
 
   db:
-    image: postgres:15
+    image: postgres
     container_name: postgres_container
     environment:
       POSTGRES_USER: copper
