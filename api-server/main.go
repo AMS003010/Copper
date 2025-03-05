@@ -1,10 +1,11 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"github.com/ams003010/Copper/api-server/initializers"
 	"github.com/ams003010/Copper/api-server/routes"
-	"github.com/gin-gonic/gin"
-	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 func init() {
@@ -14,8 +15,7 @@ func init() {
 
 func main() {
 	r := gin.Default()
-	p := ginprometheus.NewPrometheus("gin")
-	p.Use(r)
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	routes.ImageRegistryRoutes(r)
 	r.Run()
 }
