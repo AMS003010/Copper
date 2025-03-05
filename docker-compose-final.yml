@@ -1,15 +1,16 @@
 services:
   app:
     build:
-      context: https://github.com/AMS003010/Copper.git  # Clone entire repo
-      dockerfile: api-server/Dockerfile  # Specify Dockerfile inside api-server
+      context: https://github.com/AMS003010/Copper.git
+      dockerfile: api-server/Dockerfile
     ports:
       - "8080:8080"
     environment:
       - PORT=8080
-      - DB_URL=postgres://copper:copper@db:5432/copper  # Use 'db' as hostname inside Docker network
+      - DB_URL=postgres://copper:copper@db:5432/copper
     depends_on:
       - db
+      - prometheus
 
   db:
     image: postgres:15
@@ -23,7 +24,29 @@ services:
     volumes:
       - copper_data:/var/lib/postgresql/data
     restart: unless-stopped
+  
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
 
 volumes:
   copper_data:
+  grafana_data:
 
