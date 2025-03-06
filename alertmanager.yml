@@ -1,0 +1,18 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: "email"
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 10m
+
+receivers:
+  - name: "email"
+    email_configs:
+      - to: "youremail@gmail.com"
+        from: "alertmanager@example.com"
+        smarthost: "smtp.example.com:587"
+        auth_username: "youremail@gmail.com"
+        auth_password: "yourpassword"
+        require_tls: true
