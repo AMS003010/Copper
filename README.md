@@ -19,6 +19,8 @@
 ## 🏗️ Architecture
 The pipeline follows a **microservices-based** approach, with each component running in a dedicated container. The **Nginx** service acts as an entry point, directing traffic to the **app** service, which interacts with PostgreSQL, Redis, and monitoring tools.
 
+![image](https://github.com/user-attachments/assets/e79e4324-9c66-45d6-9f44-c320e06822c5)
+
 ## 🔧 Setup & Usage
 ### 1️⃣ Prerequisites
 Ensure you have the following installed:
