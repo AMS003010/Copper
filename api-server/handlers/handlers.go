@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -60,30 +61,28 @@ func fetchImagesFromDB() []models.RegistryImage {
 
 func GetAllImages(c *gin.Context, redisClient *redis.Client) {
 	ctx := context.Background()
-	cachekey := "all_images"
+	cacheKey := "all_images"
 
-	cachedData, err := redisClient.Get(ctx, cachekey).Result()
+	// Attempt to fetch from Redis cache
+	cachedData, err := redisClient.Get(ctx, cacheKey).Result()
 
-	if err == redis.Nil {
-		images := fetchImagesFromDB()
-		if images == nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching images"})
+	if err == nil {
+		// Cache hit, return cached response
+		var images []models.RegistryImage
+		if err := json.Unmarshal([]byte(cachedData), &images); err == nil {
+			c.JSON(http.StatusOK, gin.H{"images": images})
 			return
 		}
-
-		data, _ := json.Marshal(images)
-		redisClient.Set(ctx, cachekey, data, 10*time.Minute)
-
-		c.JSON(http.StatusOK, images)
-	} else if err != nil {
-		fmt.Println("Redis error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-	} else {
-		var images []models.RegistryImage
-		json.Unmarshal([]byte(cachedData), &images)
-		c.JSON(http.StatusOK, images)
 	}
 
+	if !errors.Is(err, redis.Nil) && err != nil {
+		// If error is not just "key does not exist", log and return error
+		fmt.Println("Redis error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	// Cache miss, fetch from DB
 	var images []models.RegistryImage
 	result := initializers.DB.Find(&images)
 
@@ -97,6 +96,11 @@ func GetAllImages(c *gin.Context, redisClient *redis.Client) {
 		return
 	}
 
+	// Store result in Redis for future requests
+	data, _ := json.Marshal(images)
+	redisClient.Set(ctx, cacheKey, data, 1*time.Minute)
+
+	// Return response
 	c.JSON(http.StatusOK, gin.H{"images": images})
 }
 

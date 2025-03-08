@@ -1,16 +1,6 @@
 services:
-  app:
-    build: ./api-server
-    ports:
-      - "8080:8080"
-    environment:
-      - PORT=8080
-      - DB_URL=postgres://copper:copper@db:5432/copper
-    depends_on:
-      - db
-
   db:
-    image: postgres:15
+    image: postgres
     container_name: postgres_container
     environment:
       POSTGRES_USER: copper
@@ -20,6 +10,13 @@ services:
       - "5432:5432"
     volumes:
       - copper_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
     restart: unless-stopped
 
 volumes:
