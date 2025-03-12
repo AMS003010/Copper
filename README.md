@@ -84,6 +84,10 @@ Example:
 docker-compose restart db
 ```
 
+## Activity
+
+![Alt](https://repobeats.axiom.co/api/embed/a5e79f010718597d91cba92b884212235c79a6bf.svg "Repobeats analytics image")
+
 ## 👥 Contributors
 - **@AMS003010** *(Project Maintainer)*
 
