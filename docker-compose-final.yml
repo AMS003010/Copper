@@ -101,7 +101,6 @@ services:
       - COLLECTOR_ZIPKIN_HOST_PORT=:9411
       - SPAN_STORAGE_TYPE=memory
 
-
 volumes:
   copper_data:
   grafana_data:
