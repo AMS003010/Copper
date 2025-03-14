@@ -19,5 +19,6 @@ services:
       - "6379:6379"
     restart: unless-stopped
 
+
 volumes:
   copper_data:
